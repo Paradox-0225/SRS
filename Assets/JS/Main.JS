@@ -47,7 +47,7 @@ const ProgressText = document.getElementById('TEXT-PROGRESS');
 
 
 
-function ApplyFontConfig() {
+async function ApplyFontConfig() {
 	let StyleTag = document.getElementById('DYNAMIC-FONT-STYLE');
 
 	if (CONFIG.FONT_MODE === 2) {
@@ -61,7 +61,8 @@ function ApplyFontConfig() {
 		document.head.appendChild(StyleTag);
 	}
 
-	const FontSrc = `URL('../Fonts/KleeOne-SemiBold.TTF') FORMAT('TRUETYPE')`;
+	const FontURL = 'Assets/Fonts/KleeOne-SemiBold.TTF';
+	const FontSRC = `URL('${FontURL}') FORMAT('TRUETYPE')`;
 	let UnicodeRange = '';
 
 	if (CONFIG.FONT_MODE === 0) {
@@ -73,17 +74,26 @@ function ApplyFontConfig() {
 	StyleTag.textContent = `
 		@FONT-FACE {
 			FONT-FAMILY: 'KLEEONE';
-			SRC: ${FontSrc};
+			SRC: ${FontSRC};
 			FONT-WEIGHT: NORMAL;
 			FONT-STYLE: NORMAL;
 			${UnicodeRange}
 		}
 	`;
+
+	try {
+		if (document.fonts) {
+			await document.fonts.load(`1EM KLEEONE`);
+		}
+	} catch (Err) {
+		WordQuestion.textContent = 'FONT ERROR';
+		WordAnswer.textContent = Err.message.toUpperCase();
+	}
 }
 
 
 
-function ParseFileToDictionary(Text) {
+async function ParseFileToDictionary(Text) {
 	const Lines = Text.split(/\r?\n/);
 	const ResultDB = [];
 
@@ -133,7 +143,7 @@ function ParseFileToDictionary(Text) {
 		ResultDB.push(Line);
 	}
 
-	ApplyFontConfig();
+	await ApplyFontConfig();
 
 	return ResultDB;
 }
@@ -241,15 +251,12 @@ function HandleUserAnswer(IsRemembered) {
 
 
 
-function FileLoadedPhase() {
+function FileLoadedPhase(WordsCount) {
 	LoadBTN.classList.add('HIDDEN');
 	ExecBTN.classList.remove('HIDDEN'); 
 
 	WordQuestion.textContent = "DICTIONARY LOADED";
-
-	const WordsCount = MainDB.filter(Item => typeof Item === 'object' && Item !== null).length;
 	WordAnswer.textContent = `Total Words Available: ${WordsCount}`;
-	AnswerContainer.classList.remove('INVISIBLE');
 
 	const SessionSize = Math.min(CONFIG.WORDS_PER_SESSION, WordsCount);
 	ProgressText.textContent = `0 / ${SessionSize}`;
@@ -294,7 +301,6 @@ function EndSession() {
 }
 
 function EndSessionPhase() {
-	ShowBTN.classList.add('HIDDEN');
 	ActionButtons.classList.add('HIDDEN'); 
 
 	//ProgressText.textContent = '';
@@ -308,7 +314,6 @@ function EndSessionPhase() {
 
 	WordQuestion.innerText = "PRACTICE COMPLETED";
 	WordAnswer.innerText = "Click the Button Below\nto DownLoad\nYour UpDated File";
-	AnswerContainer.classList.remove('INVISIBLE');
 }
 
 
@@ -321,24 +326,28 @@ LoadINP.addEventListener('change', (Event) => {
 
 	const Reader = new FileReader();
 
-	Reader.onload = (E) => {
+	Reader.onload = async (E) => {
 		try {
 			const Text = E.target.result;
-			MainDB = ParseFileToDictionary(Text);
-			if (MainDB.length > 0) {
-				FileLoadedPhase(); 
+			MainDB = await ParseFileToDictionary(Text);
+			const WordsCount = MainDB.filter(Item => typeof Item === 'object' && Item !== null).length;
+			if (WordsCount > 0) {
+				FileLoadedPhase(WordsCount);
 			} else {
-				throw new Error("File is Empty or Invalid");
+				throw new Error("No Valid Words Found in File");
 			}
 		} catch (Err) {
 			WordQuestion.textContent = 'FILE ERROR';
 			WordAnswer.textContent = Err.message.toUpperCase();
+		} finally {
+			LoadINP.value = '';
 		}
 	};
 
 	Reader.onerror = () => {
 		WordQuestion.textContent = 'FILE ERROR';
 		WordAnswer.textContent = 'Could Not Read File';
+		LoadINP.value = '';
 	};
 
 	Reader.readAsText(File, 'UTF-8');
