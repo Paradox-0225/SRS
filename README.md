@@ -17,7 +17,7 @@ I wanted something clean, distraction-free, and OffLine-First. This Tool require
 
 ## 🌐 Web Version (No Installation Required)
 
-If you don't want to DownLoad anything, you can use the fully functional Web Version hosted on GitHub Pages:
+If you don't want to DownLoad anything, you can use the fully functional Web Version hosted on GitHub Pages:<BR>
 🔗 **[Open Web App in Browser](https://Paradox-0225.github.io/SRS/)**
 
 ---
@@ -72,9 +72,9 @@ You can fine-tune the System by changing the Values in the `#CONFIG` line direct
 
 Navigate your Practice Sessions entirely using your KeyBoard:
 
-* <KDB>🡡 Arrow Up</KDB> / <KDB>🡣 Arrow Down</KDB> — Reveal the Answer.
-* <KDB>🡠 Arrow Left</KDB> — Mark as **Forgot** (Apply Penalty).
-* <KDB>🡢 Arrow Right</KDB> — Mark as **Remembered** (Apply Reward).
+* <KBD>🡡 Arrow Up</KBD> / <KBD>🡣 Arrow Down</KBD> — Reveal the Answer.
+* <KBD>🡠 Arrow Left</KBD> — Mark as **Forgot** (Apply Penalty).
+* <KBD>🡢 Arrow Right</KBD> — Mark as **Remembered** (Apply Reward).
 
 ---
 
