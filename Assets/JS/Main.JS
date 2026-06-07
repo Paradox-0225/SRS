@@ -20,14 +20,15 @@ const CONFIG = {
 	// Priority Weights Based on Word Scores. Higher Weight Means the Word Appears More Rrequently
 	// The Algorithm Scans from Top to Bottom and Picks the First Matching Rule.
 	PRIORITIES: [
-		{ UpToScore: 10,  Weight: 100 },
-		{ UpToScore: 50,  Weight: 25 }, 
-		{ UpToScore: Infinity, Weight: 5 } 
+		{ UpToScore: 10,  Weight: 500 },
+		{ UpToScore: 50,  Weight: 25 },
+		{ UpToScore: Infinity, Weight: 5 }
 	]
 };
 
 
 
+let IsInputBlocked = false;
 let MainDB = [];
 let SessionDeck = [];
 let CurrentCardIndex = 0;
@@ -44,6 +45,15 @@ const RememberBTN = document.getElementById('BTN-TRUE');
 const WordQuestion = document.getElementById('WORD-QUESTION');
 const WordAnswer = document.getElementById('WORD-ANSWER');
 const ProgressText = document.getElementById('TEXT-PROGRESS');
+
+
+
+function TriggerInputCoolDown() {
+	IsInputBlocked = true;
+	setTimeout(() => {
+		IsInputBlocked = false;
+	}, 500);
+}
 
 
 
@@ -244,7 +254,22 @@ function RenderCard() {
 }
 
 function HandleUserAnswer(IsRemembered) {
+	if (IsInputBlocked) return;
+
+	TriggerInputCoolDown();
+
 	SessionDeck[CurrentCardIndex].UserResult = IsRemembered;
+
+	if (IsRemembered === false) {
+		const CurrentCard = SessionDeck[CurrentCardIndex];
+		
+		SessionDeck.push({
+			ID: CurrentCard.ID,
+			IsReverse: CurrentCard.IsReverse,
+			UserResult: null
+		});
+	}
+
 	CurrentCardIndex++;
 	RenderCard();
 }
@@ -263,6 +288,10 @@ function FileLoadedPhase(WordsCount) {
 }
 
 function StartPracticePhase() {
+	if (IsInputBlocked) return;
+
+	TriggerInputCoolDown();
+
 	ExecBTN.classList.add('HIDDEN');
 	ShowBTN.classList.remove('HIDDEN');
 	AnswerContainer.classList.add('INVISIBLE');
@@ -278,6 +307,10 @@ function ResetToQuestionPhase() {
 }
 
 function ShowAnswerPhase() {
+	if (IsInputBlocked) return;
+
+	TriggerInputCoolDown();
+
 	ShowBTN.classList.add('HIDDEN');
 	ActionButtons.classList.remove('HIDDEN');
 	AnswerContainer.classList.remove('INVISIBLE');
@@ -360,6 +393,12 @@ RememberBTN.addEventListener('click', () => HandleUserAnswer(true));
 
 document.addEventListener('keydown', (E) => {
 	if (E.target.tagName === 'INPUT') return;
+
+	if (E.code === 'ArrowUp' || E.code === 'ArrowDown' || E.code === 'ArrowLeft' || E.code === 'ArrowRight') {
+		E.preventDefault();
+	}
+
+	if (IsInputBlocked) return;
 
 	if ((E.code === 'ArrowUp' || E.code === 'ArrowDown') && !ShowBTN.classList.contains('HIDDEN')) {
 		E.preventDefault();
